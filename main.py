@@ -6,11 +6,10 @@ from selenium.webdriver.common.by import By
 import time
 import os
 
-def scraper(urls):    
+def scraper(urls):
+    os.makedirs(f'./backups/busquedas')    
     final_list = []
     for index, url in enumerate(urls):
-        if not os.path.exists(f'./backups/{index}'):
-            os.makedirs(f'./backups/{index}')
         driver = login("NftScpr","scrapperbot25")
         """ checked_users = filter_users(driver,["Alien_Designer","WokeCoinAda","Stellz84751083"])
         print(checked_users) """
@@ -19,7 +18,7 @@ def scraper(urls):
         temp_list = get_data(driver, url[23:28])
         temp_list = list(set(temp_list))
         final_list.extend(temp_list)
-        with open(f"./busqueda_{url[23:28]}", "w") as f: 
+        with open(f"./backups/busquedas/busqueda_{url[23:28]}.txt", "w") as f: 
             for item in temp_list:
                 f.write(f"{item}\n")
     concat_total = len(final_list)
@@ -39,6 +38,7 @@ def get_data(driver, busqueda):
     posts_url = list(set(posts_url))
     print(f"POST URLS:{len(posts_url)}, {posts_url}")
     for index, post_url in enumerate(posts_url):
+        users_list.extend([post_url.split("/")[3]])
         driver.get(post_url)
         time.sleep(5)
         driver, comment_urls = scroll_down_get(driver=driver, iter=2)
