@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 import time
+import urllib.parse
 
 def scroll_down_get(driver: webdriver, iter):
     posts_list = []
@@ -45,7 +46,7 @@ def get_url(busquedas):
     urls= []
     for busqueda in busquedas:
         if len(busqueda)>1:
-            url = "https://x.com/search?q=" + busqueda.replace(" ", "%20").replace(":", "%3A30%") + "&src=typed_query"
+            url = "https://x.com/search?q=" + urllib.parse.quote(busqueda) + "&src=typed_query&f=live"
             urls.append(url)
     return urls
 
@@ -57,9 +58,14 @@ def filter_users(driver, users):
             followers_count_raw = element_exists(driver, By.XPATH, f"//a[@href=/{users}/verified_followers]")
             if followers_count:
                 followers_count = followers_count_raw.text
-            if ("K" in followers_count) or ("M" in followers_count):
-                checked_users.append(user)
-            elif int(followers_count)>100:
+            if("M" in followers_count):
+                continue
+            if("K" in followers_count):
+                followers_k_int = int(followers_count.strip("K").split(".")[0])
+                if followers_k_int<35:
+                    checked_users.append(user)
+                continue
+            elif int(followers_count.replace(",","")) > 5:
                 checked_users.append(user)
             else: 
                 continue
