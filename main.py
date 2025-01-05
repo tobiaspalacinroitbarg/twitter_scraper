@@ -5,8 +5,7 @@ if __name__=="__main__":
     username, password, busquedas = load_config()
     print(busquedas)
     #urls = get_urls()
-    #driver = get_users(busquedas, username, password)
-    driver = login(username, password)
+    driver = get_users(busquedas, username, password)
     filter_users(driver)
     #send_messages(driver)
     

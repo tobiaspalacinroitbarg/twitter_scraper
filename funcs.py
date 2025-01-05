@@ -126,34 +126,38 @@ def get_urls():
 
 def filter_users(driver):
         checked_users = []
+        cont_usuarios_no_cargados = 0
         with open ("./users_list.txt") as f:
             lines = f.readlines()
             users = [line.strip() for line in lines]
         for index, user in enumerate(users):
+            print(f"USER: {user}")
             driver.get(f"https://x.com/{user}")
-            time.sleep(2)
+            time.sleep(2.66)
             followers_count_raw = element_exists(driver, By.XPATH, f"//a[@href='/{user}/verified_followers']")
             if followers_count_raw:
                 followers_count = followers_count_raw.text
                 if("M" in followers_count):
-                    print(f"USER: {user} no pasó los requisitos")
+                    print(f"USER: {user} no pasó los requisitos (M)")
                     continue
                 if("K" in followers_count):
                     if int(followers_count.split(" ")[0].split(".")[0].strip("K"))<35:
                         checked_users.append(user)
                     else:
-                        print(f"USER: {user} no pasó los requisitos")
-                else:
-                    int(followers_count.replace(" Followers", "").replace(",","").strip()) > 5
-                    checked_users.append(user)
+                        print(f"USER: {user} no pasó los requisitos (K)")
+                elif int(followers_count.replace(" Followers", "").replace(",","").strip()) > 5:
+                        checked_users.append(user)
             else: 
-                print(f"USER: {user} no pasó los requisitos")
+                print(f"USER: {user} no se encontró número de seguidores")
+                cont_usuarios_no_cargados += 1
                 continue
             if index%20==0:
                 print(checked_users)
         with open(f"./checked_users_list.txt", "w") as f:
             for user in checked_users:
                 f.write(f"{user}\n") 
+        print(f"Usuarios no cargados: {cont_usuarios_no_cargados}")
+        print(f"Usuarios recibidos: {len(users)}, Usuarios que pasaron el filtro: {len(checked_users)}")
         return
 
 def login(username, password):
