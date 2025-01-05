@@ -6,12 +6,31 @@ from selenium.webdriver import ChromeOptions, Keys
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
 import time
 import urllib.parse
 import os
 
-def send_messages():
-    None
+def send_messages(driver):
+    with open ("./checked_users_list.txt") as f:
+        lines = f.readlines()
+        users = [line.strip() for line in lines]
+    for user in users:
+        driver.get(f"https://x.com/{user}")
+        time.sleep(2)
+        sm_button = element_exists(driver, By.XPATH, f"//button[@aria-label='Message']")
+        if sm_button:
+            sm_button.click()
+            time.sleep(2)
+            input_button = element_exists(driver, By.XPATH, f"//div[@data-testid='dmComposerTextInput_label']") 
+            if input_button:
+                actions = ActionChains(driver)
+                actions.move_to_element(input_button).click().send_keys(f"Hola {user}, cómo estás? Este mensaje esta hecho con un scraper por Tato. Te escribimos porque encontramos una propuesta muy interesante para ti..."+ Keys.ENTER).perform()
+                
+                time.sleep(5)
+                continue
+        print(f"ERROR en el usuario {user}")
+    return
 
 def get_users(urls, username, password):
     if not os.path.exists('./backups'):
@@ -35,7 +54,7 @@ def get_users(urls, username, password):
         for item in final_list:
             f.write(f"{item}\n")  
     driver.quit()
-    return
+    return driver
 
 def get_data(driver, busqueda):
     if not os.path.exists(f'./backups/{busqueda}'):
@@ -128,7 +147,10 @@ def filter_users(driver):
             else: 
                 print(f"USER: {user} no pasó los requisitos")
                 continue
-        return checked_users
+        with open(f"./checked_users_list.txt", "w") as f:
+            for user in checked_users:
+                f.write(f"{user}\n") 
+        return
 
 def login(username, password):
     chrome_options = ChromeOptions()
