@@ -1,49 +1,50 @@
 {
+    "mail": "scprbot@gmail.com",
     "username": "NftScpr",
     "password": "scrapperbot25",
     "busquedas": [
         {
-            "scroll_posts": 3,
-            "scroll_comments": 1,
+            "scroll_posts": 6,
+            "scroll_comments": 2,
             "query": "share nft min_replies:20 -giveaway -address -adress -wallet -giveaways -scam -winner"
         },
         {
-            "scroll_posts": 3,
-            "scroll_comments": 1,
+            "scroll_posts": 6,
+            "scroll_comments": 2,
             "query": "sell your nft min_replies:30 -giveaway -address -adress -wallet -giveaways -scam -winner"
         },
         {
-            "scroll_posts": 4,
-            "scroll_comments": 1,
+            "scroll_posts": 8,
+            "scroll_comments": 2,
             "query": "drop nft min_replies:30 -giveaway -address -adress -wallet -giveaways -scam -winner"
         },
         {
-            "scroll_posts": 4,
-            "scroll_comments": 1,
+            "scroll_posts": 6,
+            "scroll_comments": 2,
             "query": "shill nft min_replies:30 -giveaway -address -adress -wallet -giveaways -scam -winner"
         },
         {
-            "scroll_posts": 3,
+            "scroll_posts": 5,
             "scroll_comments": 1,
             "query": "buy nft min_replies:30 -giveaway -address -adress -wallet -giveaways -scam -winner"
         },
         {
-            "scroll_posts": 4,
-            "scroll_comments": 1,
+            "scroll_posts": 7,
+            "scroll_comments": 2,
             "query": "show nft min_replies:30 -giveaway -address -adress -wallet -giveaways -scam -winner"
         },
         {
-            "scroll_posts": 10,
-            "scroll_comments": 0,
+            "scroll_posts": 16,
+            "scroll_comments": 1,
             "query": "\"I've just created \" @rarible"
         },
         {
-            "scroll_posts": 10,
+            "scroll_posts": 16,
             "scroll_comments": 0,
             "query": "\"foundation.app/@\" (a OR e OR i OR o OR u OR l OR z OR x OR q OR w OR @)"
         },
         {
-            "scroll_posts": 10,
+            "scroll_posts": 16,
             "scroll_comments": 0,
             "query": "via @opensea"
         }

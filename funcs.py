@@ -33,16 +33,17 @@ def send_messages(driver):
         print(f"ERROR en el usuario {user}")
     return
 
-def get_users(busquedas, username, password):
+def get_users(busquedas, mail,  username, password):
     if not os.path.exists('./backups'):
         os.makedirs('./backups')    
     final_list = []
     for busqueda in busquedas:
         scrl_post, scrl_comment, url = busqueda[0], busqueda[1], busqueda[2]
-        driver = login(username, password)
+        driver = login(mail, username, password)
         driver.get(url)
         time.sleep(3)
         temp_list = get_data(driver, url[23:28], scrl_post, scrl_comment)
+        driver.quit()
         temp_list = list(set(temp_list))
         final_list.extend(temp_list)
         with open(f"./backups/{url[23:28]}/final_{url[23:28]}.txt", "w") as f: 
@@ -55,7 +56,6 @@ def get_users(busquedas, username, password):
     with open("./users_list.txt", "w") as f: 
         for item in final_list:
             f.write(f"{item}\n")  
-    driver.quit()
     return driver
 
 def get_data(driver, busqueda, scrl_post, scrl_comment):
@@ -64,14 +64,15 @@ def get_data(driver, busqueda, scrl_post, scrl_comment):
     users_list = []
     driver, posts_url = scroll_down_get(driver, iter=scrl_post)
     posts_url = list(set(posts_url))
-    print(f"POST URLS:{len(posts_url)}, {posts_url}")
+    print(f"Busqueda: {busqueda} - # post url:{len(posts_url)}")
     for index, post_url in enumerate(posts_url):
         users_list.extend([post_url.split("/")[3]])
         driver.get(post_url)
         time.sleep(5)
         driver, comment_urls = scroll_down_get(driver=driver, iter=scrl_comment)
-        time.sleep(5)
-        print(f"COMMENT URLS:{len(comment_urls)}, {comment_urls}")
+        if scrl_comment > 0:
+            time.sleep(5)
+        print(f"# comment url:{len(comment_urls)}")
         users_list.extend([url.split("/")[3] for url in comment_urls])
         users_list = list(set(users_list))
         if index%10==0:
@@ -113,28 +114,33 @@ def element_exists(driver:webdriver, by:By, ref:str, time=4, refresh=False):
         pass
     return ret
 
-def get_urls():
-    urls= []
-    """with open ("./busquedas.txt") as f:
-            lines = f.readlines()
-            busquedas = [line for line in lines]
-        for busqueda in busquedas:
-            if len(busqueda)>1:
-                url = "https://x.com/search?q=" + urllib.parse.quote(busqueda) + "&src=typed_query&f=live"
-                urls.append(url) """
-    return urls
-
-def filter_users(driver):
+def filter_users(driver, mail, username, password):
+        if not os.path.exists('./backups/filtrados'):
+            os.makedirs('./backups/filtrados')
+        not_found = set()
         checked_users = []
         cont_usuarios_no_cargados = 0
         with open ("./users_list.txt") as f:
             lines = f.readlines()
             users = [line.strip() for line in lines]
         for index, user in enumerate(users):
-            print(f"USER: {user}")
+            if index%50==0 and index!=0:
+                with open(f"./backups/filtrados/backup_{index}.txt", "w") as f:
+                    for item in checked_users:
+                        f.write(f"{item}\n")  
+                driver.quit()
+                driver = login(mail, username, password)
+            print(f"USER #{index}: {user}")
             driver.get(f"https://x.com/{user}")
-            time.sleep(2.66)
-            followers_count_raw = element_exists(driver, By.XPATH, f"//a[@href='/{user}/verified_followers']")
+            time.sleep(3.33)
+            try:
+                followers_count_raw = element_exists(driver, By.XPATH, f"//a[@href='/{user}/verified_followers']")
+            except Exception as e:
+                driver = login(mail, username, password)
+                print(f"Error al cargar el usuario {user}: {e}")
+                if user not in not_found:
+                    users.append(user)
+                    not_found.add(user)
             if followers_count_raw:
                 followers_count = followers_count_raw.text
                 if("M" in followers_count):
@@ -145,43 +151,66 @@ def filter_users(driver):
                         checked_users.append(user)
                     else:
                         print(f"USER: {user} no pasó los requisitos (K)")
-                elif int(followers_count.replace(" Followers", "").replace(",","").strip()) > 5:
+                elif "Followers" in followers_count:
+                    if int(followers_count.replace(" Followers", "").replace(",","").strip()) > 5:
                         checked_users.append(user)
-            else: 
+            else:
                 print(f"USER: {user} no se encontró número de seguidores")
                 cont_usuarios_no_cargados += 1
+                if user not in not_found:
+                    not_found.add(user)
+                    users.append(user)
                 continue
-            if index%20==0:
-                print(checked_users)
         with open(f"./checked_users_list.txt", "w") as f:
             for user in checked_users:
                 f.write(f"{user}\n") 
         print(f"Usuarios no cargados: {cont_usuarios_no_cargados}")
         print(f"Usuarios recibidos: {len(users)}, Usuarios que pasaron el filtro: {len(checked_users)}")
+        driver.quit()
         return
 
-def login(username, password):
+
+def login(mail, username, password):
     chrome_options = ChromeOptions()
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_experimental_option("excludeSwitches",["enable-automation"])
-    driver = webdriver.Chrome(options=chrome_options)
 
-    driver.get("https://x.com/i/flow/login")
-    we_email=element_exists(driver=driver,by=By.XPATH, ref='//input[@autocomplete="username"]',time=20)
-    we_email.send_keys(username)
-    we_email.send_keys(Keys.ENTER)
+    try:
+        driver = webdriver.Chrome(options=chrome_options)
+    except Exception as e:
+        print(f"Error al iniciar el driver: {e}")
+        return None
 
-    we_password = element_exists(driver=driver, by=By.XPATH,ref='//input[@name="password"]',time=20)
-    we_password.send_keys(password)
-    we_password.send_keys(Keys.ENTER)
-    
-    time.sleep(5)
-    return driver
+    try:
+        driver.get("https://x.com/i/flow/login")
+        we_email=element_exists(driver=driver,by=By.XPATH, ref='//input[@autocomplete="username"]',time=20)
+        we_email.send_keys(username)
+        we_email.send_keys(Keys.ENTER)
+
+        try:
+            we_email=element_exists(driver=driver,by=By.XPATH, ref='//input[@autocomplete="on"]',time=7)
+            we_email.send_keys(mail)
+            we_email.send_keys(Keys.ENTER)
+        except:
+            print("No fue necesario ingresar el email")
+            pass
+
+        we_password = element_exists(driver=driver, by=By.XPATH,ref='//input[@name="password"]',time=20)
+        we_password.send_keys(password)
+        we_password.send_keys(Keys.ENTER)
+        
+        time.sleep(5)
+        return driver
+    except Exception as e:
+        print(f"Error al iniciar sesión: {e}")
+        return None
+
+
 
 def load_config(filepath="config.json"):
     with open(filepath, "r") as f:
         config_file = json.load(f)
-    
+    mail = config_file["mail"]
     username = config_file["username"]
     password = config_file["password"]
     busquedas = [
@@ -193,4 +222,4 @@ def load_config(filepath="config.json"):
         for b in config_file["busquedas"]
     ]
 
-    return username, password, busquedas
+    return mail, username, password, busquedas
