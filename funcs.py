@@ -149,7 +149,7 @@ def filter_and_message(driver,mail, username, password):
             print(f"USER: {user} no se encontró número de seguidores")
             break
         index += 1  
-    users_list = [user for user in users if user not in checked_users] 
+    users_list = [user for user in users[:index]]
     with open(f"./users_list.txt", "w") as f:
         for user in users_list:
             f.write(f"{user}\n")
